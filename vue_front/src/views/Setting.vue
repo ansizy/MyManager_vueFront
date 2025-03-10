@@ -41,7 +41,7 @@
           :filters="[
             { text: '电影', value: '电影' },
             { text: '漫画', value: '漫画' },
-            { text: '推特', value: '推特' },
+            { text: '微博', value: '微博' },
             { text: '其他', value: '其他' },
           ]"
           :filter-method="filterType"
@@ -128,6 +128,7 @@ const handleUpdate = (index, row) => {
     }
   })
 }
+
 const handleDelete = (index, row) => {
   console.log(index, row)
   request.post('/setting/delete', {

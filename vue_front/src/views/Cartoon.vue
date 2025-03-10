@@ -47,7 +47,7 @@
                 fit="cover"
                 class="movie-image"
                 show-progress
-                :preview-src-list="srcList"
+                :preview-src-list="data.srcList"
 
             />
 
@@ -87,7 +87,6 @@ import {reactive, computed, ref, onMounted} from "vue";
 import request from "@/utils/request.js";
 import {ElMessage} from "element-plus";
 
-
 onMounted(() => {
   loadPage()
   getTotal()
@@ -100,9 +99,8 @@ const data = reactive({
   cartoonPage: [],
   total: 0,
   order: 0,
+  srcList: [],
 });
-
-const srcList = []
 
 const loadPage = () => {
   request.get('/cartoon/page', {
@@ -129,6 +127,16 @@ const searchCartoon = () => {
 
 };
 
+const searchCartoonById = (autoId) => {
+  request.get('/cartoon/searchId', {
+    params: {
+      id: autoId
+    }
+  }).then(res => {
+    data.srcList = res.data
+  })
+};
+
 const viewLikes = () => {
 
 }
@@ -142,7 +150,7 @@ const handleCurrentChange = () => {
 }
 const previewCartoon = (autoId) => {
   console.log("haha")
-  srcList.push(data.cartoonPage[0].path)
+  searchCartoonById(autoId)
 }
 </script>
 <style scoped>
