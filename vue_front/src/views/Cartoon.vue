@@ -46,9 +46,7 @@
                 :alt="cartoon.autoId"
                 fit="cover"
                 class="movie-image"
-                show-progress
                 :preview-src-list="data.srcList"
-
             />
 
             <div style="margin-top: 10px">
@@ -111,9 +109,6 @@ const loadPage = () => {
     }
   }).then(res => {
     data.cartoonPage = res.data
-    // for (let i = 0; i <data.cartoonPage.length; i++) {
-    //   srcList.push(data.cartoonPage[i].path)
-    // }
   })
 }
 

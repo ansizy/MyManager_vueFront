@@ -13,6 +13,7 @@ const router = createRouter({
         { path: 'movie', name: 'movie', component: () => import('../views/Movie.vue') },
         { path: 'cartoon', name: 'cartoon', component: () => import('../views/Cartoon.vue') },
         { path: 'setting', name: 'setting', component: () => import('../views/Setting.vue') },
+        { path: 'socialMedia', name: 'socialMedia', component: () => import('../views/SocialMedia.vue') },
       ]
     },
     {

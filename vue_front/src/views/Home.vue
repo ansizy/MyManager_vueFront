@@ -15,7 +15,7 @@
         <el-menu router :default-active="router.currentRoute.value.path" style="border: 0">
           <el-menu-item index="/home/movie">电 影</el-menu-item>
           <el-menu-item index="/home/cartoon">漫 画</el-menu-item>
-          <el-menu-item >微 博</el-menu-item>
+          <el-menu-item index="/home/socialMedia">社 交 媒 体</el-menu-item>
           <el-menu-item >其 他</el-menu-item>
           <el-menu-item index="/home/setting">设 置</el-menu-item>
         </el-menu>
