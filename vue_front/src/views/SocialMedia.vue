@@ -95,12 +95,12 @@
                         :preview-src-list="[tweet.mediaUrl]"
                         style="max-width: 50%; border-radius: 8px;"
                     />
-                    <video
-                        v-else-if="tweet.mediaType === 'video'"
-                        :src="tweet.mediaUrl"
-                        controls
-                        style="max-width: 100%; border-radius: 8px;"
-                    ></video>
+                    <VideoPlayer
+                        v-else-if="tweet.mediaType === 'Video'"
+                        :username="tweet.userName"
+                        :filename="tweet.savedFilename"
+                        @error="handleError"
+                    />
                   </div>
                   <div class="tweet-stats">
                     <span class="stat-item">
@@ -133,11 +133,12 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, ref, onUnmounted } from "vue";
+import {reactive, onMounted, ref, onUnmounted, handleError} from "vue";
 import { ElMessage } from "element-plus";
 import request from "@/utils/request.js";
 import logo from "@/assets/twitterLogo.png";
 import { ChatDotRound, Share, StarFilled } from "@element-plus/icons-vue";
+import VideoPlayer from "@/components/videoPlayer.vue";
 
 onMounted(() => {
   console.log('Component mounted');
