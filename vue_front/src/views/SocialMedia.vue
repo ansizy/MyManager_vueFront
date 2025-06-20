@@ -8,8 +8,18 @@
           placeholder="请输入博主名称"
           prefix-icon="Search"
       ></el-input>
-      <el-button type="primary" @click="searchCartoon">查 询</el-button>
-      <el-button type="primary" @click="viewLikes">喜欢列表</el-button>
+      <el-button type="primary" @click="searchTwitter">查 询</el-button>
+<!--      todo 喜欢的博主，喜欢的推文-->
+      <el-button type="primary" @click="viewLikes">喜欢的博主</el-button>
+      <el-button type="primary" @click="viewLikes">喜欢的推文</el-button>
+
+      <span style="margin-left: 100px">
+        博主总数：{{data.twitterPage.length}}
+      </span>
+
+      <span style="margin-left: 100px">
+        当前博主推文总数：{{data.tweetTotalNumber}}
+      </span>
     </div>
 
     <el-divider />
@@ -69,7 +79,7 @@
           </el-header>
 
           <el-main>
-            <div v-if="data.tweetList?.length" style="height: 70vh; overflow-y: auto;">
+            <div v-if="data.tweetList?.length" style="height: 90vh; overflow-y: auto;">
               <!-- 推文列表 -->
               <div v-for="(tweet, index) in data.tweetList" :key="index" class="tweet-item">
                 <el-card shadow="never" style="margin-bottom: 16px; border-radius: 12px;">
@@ -115,6 +125,7 @@
                       <el-icon><StarFilled /></el-icon>
                       {{ tweet.favoriteCount || 0 }}
                     </span>
+<!--              todo      加个喜欢图标-->
                   </div>
                 </el-card>
               </div>
@@ -164,6 +175,8 @@ const data = reactive({
   pageSize: 20,
   hasMore: true,
   loading: false,
+  tweetTotalNumber: 0,
+  // searchList: [],
 });
 
 const loadMoreTrigger = ref(null);
@@ -180,7 +193,7 @@ const loadTwitters = () => {
 };
 
 const selectUser = (user) => {
-  console.log('Selecting user:', user);
+  // console.log('Selecting user:', user);
   data.twitterDetail = {
     avatar: logo,
     username: user.userName,
@@ -228,6 +241,7 @@ const selectTweetList = (user, append = false) => {
         console.error('Tweet load error:', err);
         ElMessage.error("加载推文失败");
       });
+  getTweetTotalNumber(user.userName)
 };
 
 const setupIntersectionObserver = () => {
@@ -262,13 +276,41 @@ const setupIntersectionObserver = () => {
   console.log('Observer is observing loadMoreTrigger');
 };
 
-const searchCartoon = () => {
-  // 搜索逻辑
+// 搜索逻辑
+const searchTwitter = () => {
+  if(data.search === '') {
+    loadTwitters();
+  }
+  else {
+    request.get('/twitter/search', {
+      params: {
+        keyword: data.search,
+      }
+    }).then(res => {
+      data.twitterPage = res.data
+    })
+  }
 };
 
 const viewLikes = () => {
   // 喜欢列表逻辑
 };
+
+const getTweetTotalNumber = (userName) => {
+  request.get("/twitter/user/total/", {
+    params: {
+      userName: userName,
+    }
+  }).then(res => {
+    if(res.code === 500) {
+      ElMessage.error(res.data)
+    }
+    else{
+      console.log("hhhahahahhaahah" + res.data)
+      data.tweetTotalNumber = res.data
+    }
+  })
+}
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
