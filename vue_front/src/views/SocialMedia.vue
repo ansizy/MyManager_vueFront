@@ -9,9 +9,23 @@
           prefix-icon="Search"
       ></el-input>
       <el-button type="primary" @click="searchTwitter">查 询</el-button>
-<!--      todo 喜欢的博主，喜欢的推文-->
-      <el-button type="primary" @click="viewLikes">喜欢的博主</el-button>
-      <el-button type="primary" @click="viewLikes">喜欢的推文</el-button>
+<!--      <el-button type="primary" @click="viewLikesTwitter">喜欢的博主</el-button>-->
+      <el-button type="primary" @click="viewLikeTweet">喜欢的推文</el-button>
+
+      <!-- todo     排序-->
+      <el-select
+          v-model="data.order"
+          placeholder="Select"
+          style="width: 240px; margin-left: 20px"
+          @change="changeOrder"
+      >
+        <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+        />
+      </el-select>
 
       <span style="margin-left: 100px">
         博主总数：{{data.twitterPage.length}}
@@ -122,10 +136,14 @@
                       {{ tweet.retweetCount || 0 }}
                     </span>
                     <span class="stat-item">
-                      <el-icon><StarFilled /></el-icon>
+                      <el-icon><Histogram /></el-icon>
                       {{ tweet.favoriteCount || 0 }}
                     </span>
-<!--              todo      加个喜欢图标-->
+                    <span class="stat-item">
+                      <el-button @click="add2like(tweet)" link size="small">
+                        <el-icon :color="tweet.isLike ? 'red' : 'gray'"><StarFilled /></el-icon>
+                      </el-button>
+                    </span>
                   </div>
                 </el-card>
               </div>
@@ -137,6 +155,7 @@
               该用户暂无推文
             </div>
           </el-main>
+
         </el-container>
       </el-container>
     </div>
@@ -148,7 +167,7 @@ import {reactive, onMounted, ref, onUnmounted, handleError} from "vue";
 import { ElMessage } from "element-plus";
 import request from "@/utils/request.js";
 import logo from "@/assets/twitterLogo.png";
-import { ChatDotRound, Share, StarFilled } from "@element-plus/icons-vue";
+import {ChatDotRound, Histogram, Share, StarFilled} from "@element-plus/icons-vue";
 import VideoPlayer from "@/components/videoPlayer.vue";
 
 onMounted(() => {
@@ -160,6 +179,10 @@ onUnmounted(() => {
   observer.value?.disconnect();
   console.log('IntersectionObserver disconnected');
 });
+const options = [
+  {value: '0', label: '按出版时间排序',},
+  {value: '1', label: '按加入时间排序',},
+]
 
 const data = reactive({
   search: "",
@@ -292,9 +315,75 @@ const searchTwitter = () => {
   }
 };
 
-const viewLikes = () => {
+const viewLikesTwitter = () => {
   // 喜欢列表逻辑
 };
+const viewLikeTweet = () => {
+  // 喜欢列表逻辑
+  let append = false
+  data.currentPage = 1
+  request
+      .post("/twitter/like/getTweet", {
+        userName: "like",
+        page: data.currentPage,
+        pageSize: data.pageSize,
+      })
+      .then((res) => {
+        console.log('Response received:', res);
+        const newTweets = res.data || [];
+        if (append) {
+          data.tweetList.push(...newTweets);
+        } else {
+          data.tweetList = newTweets;
+        }
+        data.hasMore = newTweets.length === data.pageSize;
+        data.currentPage += 1;
+        data.loading = false;
+        console.log('Tweets loaded:', newTweets.length, 'tweetList:', data.tweetList, 'hasMore:', data.hasMore);
+        if (!append && newTweets.length > 0) {
+          setupIntersectionObserver();
+        }
+      })
+      .catch((err) => {
+        data.loading = false;
+        console.error('Tweet load error:', err);
+        ElMessage.error("加载推文失败");
+      });
+};
+
+const add2like = (tweet) => {
+  // 如果没有喜欢，则加入喜欢
+  if (tweet.isLike === false) {
+    request.get("/twitter/like/add/tweet", {
+      params: {
+        autoId: tweet.autoId,
+      }
+    }).then(res => {
+      if (res.code === '200') {
+        ElMessage.success("成功加入喜欢列表!")
+      }
+      else {
+        ElMessage.error(res.data)
+      }
+    })
+  }
+  // 如果加入喜欢，则去除喜欢
+  else {
+    request.get("/twitter/like/remove/tweet", {
+      params: {
+        autoId: tweet.autoId,
+      }
+    }).then(res => {
+      if (res.code === '200') {
+        ElMessage.info("成功去除喜欢列表!")
+      }
+      else {
+        ElMessage.error(res.data)
+      }
+    })
+  }
+  tweet.isLike = !tweet.isLike
+}
 
 const getTweetTotalNumber = (userName) => {
   request.get("/twitter/user/total/", {
