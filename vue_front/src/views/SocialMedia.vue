@@ -64,7 +64,19 @@
                     <div class="username">@{{ user.userName }}</div>
                   </div>
                 </div>
+
+                <div class="action-section">
+                  <el-button
+                      type="primary"
+                      @click.stop="updateTweet(user)"
+                      class="update-btn"
+                      size="medium">
+                    更新
+                  </el-button>
+                </div>
+
               </el-card>
+
             </el-col>
           </el-row>
         </el-aside>
@@ -353,7 +365,7 @@ const viewLikeTweet = () => {
 
 const add2like = (tweet) => {
   // 如果没有喜欢，则加入喜欢
-  if (tweet.isLike === false) {
+  if (tweet.isLike === 0) {
     request.get("/twitter/like/add/tweet", {
       params: {
         autoId: tweet.autoId,
@@ -397,6 +409,20 @@ const getTweetTotalNumber = (userName) => {
     else{
       console.log("hhhahahahhaahah" + res.data)
       data.tweetTotalNumber = res.data
+    }
+  })
+}
+
+const updateTweet = (user) => {
+  // ElMessage.info(user.userName)
+  request.post("/twitter/update", {
+    userName: user.userName,
+  }).then(res => {
+    if(res.code === '200') {
+      ElMessage.success("更新成功!" + res.data)
+    }
+    else {
+      ElMessage.error("更新失败!" + res.data)
     }
   })
 }
@@ -530,5 +556,14 @@ const formatDate = (dateString) => {
   text-align: center;
   color: #999;
   padding: 24px;
+}
+
+.action-section {
+  width: 100%;
+}
+
+.update-btn {
+  width: 100%;
+  margin-top: 10px;
 }
 </style>
