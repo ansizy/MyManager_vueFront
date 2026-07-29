@@ -2,8 +2,11 @@ import axios from "axios";
 import {ElMessage} from "element-plus";
 
 
+// 后端服务地址，统一出口（视频流等非 axios 场景也从这里取）
+export const baseURL = 'http://localhost:8080'
+
 const request = axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL,
     timeout: 60000
 })
 

@@ -36,17 +36,21 @@
         <el-col
             :span="4"
             v-for="(cartoon, index) in data.cartoonPage"
-            :key="cartoon.id"
+            :key="cartoon.autoId"
             class="movie-col"
         >
           <!--          展示单个数据-->
-          <div class="movie_card" @click="previewCartoon(cartoon.autoId)">
+          <div
+              class="movie_card"
+              v-loading="data.loadingId === cartoon.autoId"
+              @click="previewCartoon(cartoon.autoId)"
+          >
             <el-image
-                :src="cartoon.path"
-                :alt="cartoon.autoId"
+                :src="`${baseURL}/cartoon/image/${cartoon.autoId}/0`"
+                :alt="cartoon.name"
                 fit="cover"
                 class="movie-image"
-                :preview-src-list="data.srcList"
+                lazy
             />
 
             <div style="margin-top: 10px">
@@ -62,6 +66,13 @@
           </div>
         </el-col>
       </el-row>
+
+      <!-- 漫画阅读器：数据加载完成后才打开，图片按需加载 -->
+      <el-image-viewer
+          v-if="data.showViewer"
+          :url-list="data.srcList"
+          @close="data.showViewer = false"
+      />
 
       <!-- 分页 -->
       <div class="pagination">
@@ -82,7 +93,7 @@
 
 <script setup>
 import {reactive, computed, ref, onMounted} from "vue";
-import request from "@/utils/request.js";
+import request, {baseURL} from "@/utils/request.js";
 import {ElMessage} from "element-plus";
 
 onMounted(() => {
@@ -98,6 +109,8 @@ const data = reactive({
   total: 0,
   order: 0,
   srcList: [],
+  showViewer: false,
+  loadingId: null, // 正在加载详情的漫画id，兼作防重复点击锁
 });
 
 const loadPage = () => {
@@ -123,12 +136,25 @@ const searchCartoon = () => {
 };
 
 const searchCartoonById = (autoId) => {
+  data.loadingId = autoId
   request.get('/cartoon/searchId', {
     params: {
       id: autoId
     }
   }).then(res => {
+    if (res.code !== '200') {
+      ElMessage.error(res.msg || '加载漫画失败')
+      return
+    }
     data.srcList = res.data
+    if (data.srcList && data.srcList.length > 0) {
+      // 数据就绪后再打开阅读器，避免打开旧漫画内容
+      data.showViewer = true
+    } else {
+      ElMessage.warning('该漫画暂无内容')
+    }
+  }).finally(() => {
+    data.loadingId = null
   })
 };
 
@@ -137,6 +163,8 @@ const viewLikes = () => {
 }
 
 const handleSizeChange = () => {
+  // 每页条数变化后回到第一页，避免 offset 超出总数出现空页
+  data.currentPage = 1
   loadPage()
 }
 
@@ -144,7 +172,10 @@ const handleCurrentChange = () => {
   loadPage()
 }
 const previewCartoon = (autoId) => {
-  console.log("haha")
+  // 加载中禁止重复点击
+  if (data.loadingId !== null) {
+    return
+  }
   searchCartoonById(autoId)
 }
 </script>
@@ -161,6 +192,7 @@ const previewCartoon = (autoId) => {
   border-radius: 5px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
   margin-bottom: 10px;
+  cursor: pointer; /* 提示卡片可点击 */
 }
 
 .movie-image {

@@ -12,7 +12,7 @@
       <!--      <el-button type="primary" @click="viewLikesTwitter">喜欢的博主</el-button>-->
       <el-button type="primary" @click="viewLikeTweet">喜欢的推文</el-button>
 
-      <!-- todo     排序-->
+
       <el-select
           v-model="data.order"
           placeholder="Select"
